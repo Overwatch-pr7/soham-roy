@@ -4,6 +4,6 @@ I watched a few tutorials for this as well and it was worth it!
 Hit me up @sohampr7@gmail.com if you have any suggestions and have a nice day :)
 
 //TODO//
-Explore better color schemes
-Add highlights on interactable objects
-Score system for each interactable object
+1)Explore better color schemes
+2)Add highlights on interactable objects
+3)Score system for each interactable object
