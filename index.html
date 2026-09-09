@@ -73,6 +73,14 @@
         user-select: none;  
       }
 
+      .score-container{
+        position: absolute;
+        right: 5%;
+        top: 1vh;
+        color: rgb(239, 198, 198);
+        user-select: none;
+      }
+
       .resume-btn{
         position: absolute;
         left: 5%;
@@ -99,6 +107,9 @@
     <div id="app">
       <div id="ui">
         <p class="note">Tap/Click to a spot to move<br>to that location.<br>Or use the WASD keys!<br>Just go near various objects to<br>know more about them :)</p>
+        <div class="score-container">
+          Score: <span id="score">0</span>
+        </div>
         <a href="/soham-roy/resume.pdf" target="_blank" class="resume-btn">View Resume PDF</a>
         <div id="textbox-container" style="display: none"> <!--not best practice. could've made an id up in style-->
           <div id="textbox">
