@@ -20,6 +20,52 @@ k.loadSprite("spritesheet", "/soham-roy/spritesheet.png", {
 k.loadSprite("map", "/soham-roy/map.png");
 k.setBackground(k.Color.fromHex("311047")) //bg template. might change later based on aesthetics
 
+//retro "interactable" hint: stepped pulse + twinkling pixel sparkle.
+//children of map share its scale, so 1 unit here = 1 map pixel (chunky like the tiles)
+const GLOW_COLOR = k.Color.fromHex("3fe0a0"); //emerald. mid brightness so it reads on both the cream wall and the dark floor
+const GLOW_STEPS = [0, 0.12, 0.24, 0.32, 0.24, 0.12]; //few opacity levels instead of a smooth fade
+const GLOW_FPS = 6;
+
+function addInteractGlow(map, boundary) {
+    const x = Math.round(boundary.x);
+    const y = Math.round(boundary.y);
+    const w = Math.round(boundary.width);
+    const h = Math.round(boundary.height);
+
+    const glow = map.add([
+        k.rect(w, h),
+        k.pos(x, y),
+        k.color(GLOW_COLOR),
+        k.opacity(0),
+    ]);
+
+    //4-point sparkle in the top-right corner. arms grow/shrink a pixel at a time
+    const sparkle = map.add([k.pos(x + w - 1, y - 1)]);
+    const pixels = [];
+    const addPixel = (px, py, minFrame) => {
+        pixels.push({
+            obj: sparkle.add([k.rect(1, 1), k.pos(px, py), k.color(GLOW_COLOR), k.opacity(0)]),
+            minFrame,
+        });
+    };
+    addPixel(0, 0, 1);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        addPixel(dx, dy, 2);
+        addPixel(dx * 2, dy * 2, 3);
+    }
+
+    //offset each object so they don't all blink in unison
+    const offset = (x + y) % GLOW_STEPS.length;
+    glow.onUpdate(() => {
+        const frame = (Math.floor(k.time() * GLOW_FPS) + offset) % GLOW_STEPS.length;
+        glow.opacity = GLOW_STEPS[frame];
+
+        //sparkle size follows the pulse: 0 -> dot -> plus -> big plus
+        const size = frame <= 3 ? frame : GLOW_STEPS.length - frame;
+        for (const p of pixels) p.obj.opacity = size >= p.minFrame ? 1 : 0;
+    });
+}
+
 k.scene("main", async () => {  //code for this scene. async cuz fetch() and json() are async!
     const mapData = await (await (fetch("/soham-roy/map.json"))).json()
     const layers = mapData.layers;
@@ -56,6 +102,11 @@ k.scene("main", async () => {  //code for this scene. async cuz fetch() and json
                     k.pos(boundary.x, boundary.y),
                     boundary.name,
                 ]);
+
+                //interactable glow (everything with dialogue except exit)
+                if (boundary.name && boundary.name !== "exit" && dialogueData[boundary.name]) {
+                    addInteractGlow(map, boundary);
+                }
 
                 if (boundary.name) {
                     player.onCollide(boundary.name, () => {
